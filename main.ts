@@ -5,7 +5,7 @@
 // directory. The output directory defaults to /output and can be overridden
 // with the MAKEFUN_OUTPUT_DIR or OUTPUT_DIR environment variables.
 
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 const ENTRY_TEXT: string =
@@ -28,7 +28,16 @@ function main(): void {
   mkdirSync(outputDir, { recursive: true });
 
   const entryPath = join(outputDir, "entry.txt");
-  writeFileSync(entryPath, ENTRY_TEXT + "\n", { encoding: "utf8" });
+  const expectedContent = ENTRY_TEXT + "\n";
+  writeFileSync(entryPath, expectedContent, { encoding: "utf8" });
+
+  // Verify after writing: read the file back and fail loudly if its
+  // content is not exactly what was intended.
+  const writtenContent = readFileSync(entryPath, { encoding: "utf8" });
+  if (writtenContent !== expectedContent) {
+    console.error(`verification failed for ${entryPath}`);
+    process.exit(1);
+  }
 
   console.log(`entry written to ${entryPath}`);
 }
